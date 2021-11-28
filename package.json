@@ -4,7 +4,8 @@
   "description": "Chat App with Nodejs And Socket.io",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon ./index.js"
+    "start": "nodemon ./index.js",
+    "test": "jasmine"
   },
   "keywords": [
     "node",
@@ -20,5 +21,8 @@
     "mongodb": "^4.2.0",
     "mongoose": "^6.0.13",
     "socket.io": "^4.4.0"
+  },
+  "devDependencies": {
+    "jasmine": "^3.10.0"
   }
 }
