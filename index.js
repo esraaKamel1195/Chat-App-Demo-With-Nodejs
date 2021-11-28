@@ -43,21 +43,28 @@ app.get('/messages', (req, res) => {
 
 app.post('/messages', async (req, res) => {
 
-    let message = new Message(req.body);
+    try {
+        let message = new Message(req.body);
 
-    let savedMessaged = await message.save();
+        let savedMessaged = await message.save();
 
-    console.log('Saved');
+        console.log('Saved');
 
-    let censored = await Message.findOne({ message: 'badword' });
+        let censored = await Message.findOne({ message: 'badword' });
 
-    if(censored) {
-        await Message.remove({ _id: censored.id });
-    } else
-        io.emit('message', req.body);
+        if(censored) {
+            await Message.remove({ _id: censored.id });
+        } else
+            io.emit('message', req.body);
 
-    res.sendStatus(200);
-    // .catch((err) => console.error(err));
+        res.sendStatus(200);
+
+    } catch (error) {
+        res.sendStatus(500)
+        console.error(error)
+    } finally {
+        console.log('message post called')
+    }
 });
 
 io.on('connection', (socket)=> {
