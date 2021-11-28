@@ -11,6 +11,8 @@ app.use(express.static(__dirname));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false}));
 
+mongoose.Promise = Promise;
+
 const DBUrl = "mongodb://localhost:27017/ChatApp";
 
 var Message = mongoose.model('Message', {
@@ -22,11 +24,19 @@ mongoose.connect(DBUrl, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }, (err)=> {
-    console.log('MongoDb connection', err);
+    if(err) {
+        return console.error(err);
+    }
+
+    console.log('MongoDB connected successfully');
 });
 
 app.get('/messages', (req, res) => {
-    Message.find({}, (err, messages) =>{
+    Message.find({}, (err, messages) => {
+        if(err) {
+            console.error(err);
+        }
+
         res.send(messages)
     });
 });
@@ -35,14 +45,20 @@ app.post('/messages', (req, res) => {
 
     let message = new Message(req.body);
 
-    message.save((err) => {
-        if (err) {
-            res.sendStatus = 500;
-            console.error(err);
+    message.save()
+    .then(() => {
+        console.log('Saved');
+        return Message.findOne({ message: 'badword' });
+    })
+    .then((censored) => {
+        if(censored) {
+            console.log('censored word found', censored);
+            return Message.remove({ _id: censored.id });
         }
         io.emit('message', req.body);
         res.sendStatus(200);
-    });
+    })
+    .catch((err) => console.error(err));
 });
 
 io.on('connection', (socket)=> {
