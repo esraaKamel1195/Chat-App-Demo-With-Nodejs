@@ -41,24 +41,23 @@ app.get('/messages', (req, res) => {
     });
 });
 
-app.post('/messages', (req, res) => {
+app.post('/messages', async (req, res) => {
 
     let message = new Message(req.body);
 
-    message.save()
-    .then(() => {
-        console.log('Saved');
-        return Message.findOne({ message: 'badword' });
-    })
-    .then((censored) => {
-        if(censored) {
-            console.log('censored word found', censored);
-            return Message.remove({ _id: censored.id });
-        }
+    let savedMessaged = await message.save();
+
+    console.log('Saved');
+
+    let censored = await Message.findOne({ message: 'badword' });
+
+    if(censored) {
+        await Message.remove({ _id: censored.id });
+    } else
         io.emit('message', req.body);
-        res.sendStatus(200);
-    })
-    .catch((err) => console.error(err));
+
+    res.sendStatus(200);
+    // .catch((err) => console.error(err));
 });
 
 io.on('connection', (socket)=> {
